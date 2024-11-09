@@ -83,7 +83,7 @@ class BaseRepository(Generic[ModelType]):
 
         :param model: The model to delete.
         """
-        self.session.delete(model)
+        await self.session.delete(model)
         await self.session.commit()
 
     def _query(self, order_: dict | None = None) -> Select:
