@@ -5,6 +5,8 @@ from core.database import Base
 from core.database.mixins import TimestampMixin
 from core.security import password_handler
 
+from .role import Role
+
 
 class User(Base, TimestampMixin):
     __tablename__ = "users"
@@ -12,6 +14,7 @@ class User(Base, TimestampMixin):
     id: so.Mapped[int] = so.mapped_column(sa.Integer, primary_key=True)
     username: so.Mapped[str] = so.mapped_column(sa.String(64), unique=True, index=True)
     password_hash: so.Mapped[str] = so.mapped_column(sa.String(256))
+    role: so.Mapped[Role] = so.mapped_column(sa.Enum(Role), default=Role.USER)
 
     def __repr__(self) -> str:
         return f"<User {self.username}>"
