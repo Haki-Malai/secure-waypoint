@@ -7,7 +7,7 @@ from starlette.authentication import (
 )
 from starlette.requests import HTTPConnection
 
-from app.schemas.extras.current_user import CurrentUser
+from app.schemas.extras import CurrentUser
 from core.config import config
 
 
