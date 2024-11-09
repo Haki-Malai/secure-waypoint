@@ -56,8 +56,7 @@ class BaseController(Generic[ModelType]):
         :return: A list of records.
         """
 
-        response = await self.repository.get_all(skip, limit)
-        return response
+        return await self.repository.get_all(skip, limit)
 
     async def create(self, attributes: dict[str, Any]) -> ModelType:
         """Creates a new Object in the DB.
@@ -82,15 +81,15 @@ class BaseController(Generic[ModelType]):
         db_obj = await self.get_by_id(id_)
         return await self.repository.update(db_obj, attributes)
 
-    async def delete(self, model: ModelType) -> bool:
+    async def delete(self, id_: int) -> None:
         """Deletes the Object from the DB.
 
-        :param model: The model to delete.
+        :param id_: The id of the object to delete.
 
         :return: True if the object was deleted, False otherwise.
         """
-        delete = await self.repository.delete(model)
-        return delete
+        db_obj = await self.get_by_id(id_)
+        return await self.repository.delete(db_obj)
 
     @staticmethod
     async def extract_attributes_from_schema(

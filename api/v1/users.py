@@ -45,3 +45,11 @@ async def update_user(
     user_controller: UserController = Depends(Factory().get_user_controller),
 ):
     return await user_controller.update(user_id, user_request.dict())
+
+
+@users_router.delete("/{user_id}")
+async def delete_user(
+    user_id: int,
+    user_controller: UserController = Depends(Factory().get_user_controller),
+):
+    return await user_controller.delete(user_id)

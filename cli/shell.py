@@ -4,6 +4,7 @@ import contextlib
 import nest_asyncio
 import typer
 from IPython.terminal.embed import InteractiveShellEmbed
+from sqlalchemy.sql.expression import select  # noqa: F401
 
 from app.models import *  # noqa: F403
 from core.database.session import (
