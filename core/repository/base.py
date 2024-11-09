@@ -38,7 +38,7 @@ class BaseRepository(Generic[ModelType]):
 
         :return: A list of model instances.
         """
-        query = self._query()
+        query = select(self.model_class)
         query = query.offset(skip).limit(limit)
 
         return await self._all_unique(query)

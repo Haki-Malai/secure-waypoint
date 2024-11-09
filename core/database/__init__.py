@@ -5,7 +5,6 @@ from core.database.session import (
     session,
     set_session_context,
 )
-from core.database.standalone_session import standalone_session
 
 __all__ = [
     "Base",
@@ -13,5 +12,4 @@ __all__ = [
     "get_session",
     "set_session_context",
     "reset_session_context",
-    "standalone_session",
 ]
