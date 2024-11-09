@@ -30,21 +30,6 @@ class BaseRepository(Generic[ModelType]):
         await self.session.commit()
         return model
 
-    async def update(self, model: ModelType, attributes: dict[str, Any]) -> ModelType:
-        """Updates the model instance.
-
-        :param model: The model to update.
-        :param attributes: The attributes to update the model with.
-
-        :return: The updated model instance.
-        """
-        for key, value in attributes.items():
-            setattr(model, key, value)
-
-        self.session.add(model)
-        await self.session.commit()
-        return model
-
     async def get_all(self, skip: int = 0, limit: int = 100) -> list[ModelType]:
         """Returns a list of model instances.
 
@@ -71,12 +56,27 @@ class BaseRepository(Generic[ModelType]):
 
         :return: The model instance.
         """
-        query = self._query()
+        query = select(self.model_class)
         query = await self._get_by(query, field, value)
         if unique:
             return await self._one(query)
 
         return await self._all(query)
+
+    async def update(self, model: ModelType, attributes: dict[str, Any]) -> ModelType:
+        """Updates the model instance.
+
+        :param model: The model to update.
+        :param attributes: The attributes to update the model with.
+
+        :return: The updated model instance.
+        """
+        for key, value in attributes.items():
+            setattr(model, key, value)
+
+        self.session.add(model)
+        await self.session.commit()
+        return model
 
     async def delete(self, model: ModelType) -> None:
         """Deletes the model.
@@ -85,18 +85,6 @@ class BaseRepository(Generic[ModelType]):
         """
         await self.session.delete(model)
         await self.session.commit()
-
-    def _query(self, order_: dict | None = None) -> Select:
-        """Returns a callable that can be used to query the model.
-
-        :param order_: The order of the results. (e.g desc, asc)
-
-        :return: A callable that can be used to query the model.
-        """
-        query = select(self.model_class)
-        query = self._maybe_ordered(query, order_)
-
-        return query
 
     async def _all(self, query: Select) -> list[ModelType]:
         """Returns all results from the query.
@@ -149,38 +137,6 @@ class BaseRepository(Generic[ModelType]):
 
         return query.one()
 
-    async def _sort_by(
-        self,
-        query: Select,
-        sort_by: str,
-        order: str | None = "asc",
-        model: type[ModelType] | None = None,
-        case_insensitive: bool = False,
-    ) -> Select:
-        """Returns the query sorted by the given column.
-
-        :param query: The query to sort.
-        :param sort_by: The column to sort by.
-        :param order: The order to sort by.
-        :param model: The model to sort.
-        :param case_insensitive: Whether to sort case insensitively.
-
-        :return: The sorted query.
-        """
-        model = model or self.model_class
-
-        order_column = None
-
-        if case_insensitive:
-            order_column = func.lower(getattr(model, sort_by))
-        else:
-            order_column = getattr(model, sort_by)
-
-        if order == "desc":
-            return query.order_by(order_column.desc())
-
-        return query.order_by(order_column.asc())
-
     async def _get_by(self, query: Select, field: str, value: Any) -> Select:
         """Returns the query filtered by the given column.
 
@@ -191,21 +147,3 @@ class BaseRepository(Generic[ModelType]):
         :return: The filtered query.
         """
         return query.where(getattr(self.model_class, field) == value)
-
-    def _maybe_ordered(self, query: Select, order_: dict | None = None) -> Select:
-        """Returns the query ordered by the given column.
-
-        :param query: The query to order.
-        :param order_: The order to make.
-
-        :return: The query ordered by the given column.
-        """
-        if order_:
-            if order_["asc"]:
-                for order in order_["asc"]:
-                    query = query.order_by(getattr(self.model_class, order).asc())
-            else:
-                for order in order_["desc"]:
-                    query = query.order_by(getattr(self.model_class, order).desc())
-
-        return query

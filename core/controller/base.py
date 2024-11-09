@@ -1,6 +1,5 @@
 from typing import Any, Generic, TypeVar
 
-from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError
 
 from core.database import Base
@@ -17,19 +16,28 @@ class BaseController(Generic[ModelType]):
         self.model_class = model
         self.repository = repository
 
-    async def get_by_user_id(self, user_id: int) -> ModelType:
+    async def create(self, attributes: dict[str, Any]) -> ModelType:
+        """Creates a new Object in the DB.
+
+        :param attributes: The attributes to create the object with.
+
+        :return: The created object.
+        """
         try:
-            result = await self.repository.get_by(
-                field="user_id", value=user_id, unique=True
-            )
-            if result:
-                return result
-            else:
-                raise NotFoundException(
-                    f"EventMapping with user_id: {user_id} does not exist"
-                )
-        except Exception as e:
-            raise e
+            return await self.repository.create(attributes)
+        except IntegrityError as e:
+            raise BadRequestException(f"Database Integrity Error: {e.orig}")
+
+    async def get_all(self, skip: int = 0, limit: int = 100) -> list[ModelType]:
+        """Returns a list of records based on pagination params.
+
+        :param skip: The number of records to skip.
+        :param limit: The number of records to return.
+
+        :return: A list of records.
+        """
+
+        return await self.repository.get_all(skip, limit)
 
     async def get_by_id(self, id_: int) -> ModelType:
         """Returns the model instance matching the id.
@@ -46,29 +54,6 @@ class BaseController(Generic[ModelType]):
             )
 
         return db_obj
-
-    async def get_all(self, skip: int = 0, limit: int = 100) -> list[ModelType]:
-        """Returns a list of records based on pagination params.
-
-        :param skip: The number of records to skip.
-        :param limit: The number of records to return.
-
-        :return: A list of records.
-        """
-
-        return await self.repository.get_all(skip, limit)
-
-    async def create(self, attributes: dict[str, Any]) -> ModelType:
-        """Creates a new Object in the DB.
-
-        :param attributes: The attributes to create the object with.
-
-        :return: The created object.
-        """
-        try:
-            return await self.repository.create(attributes)
-        except IntegrityError as e:
-            raise BadRequestException(f"Database Integrity Error: {e.orig}")
 
     async def update(self, id_: int, attributes: dict[str, Any]) -> ModelType:
         """Updates the Object in the DB.
@@ -90,17 +75,3 @@ class BaseController(Generic[ModelType]):
         """
         db_obj = await self.get_by_id(id_)
         return await self.repository.delete(db_obj)
-
-    @staticmethod
-    async def extract_attributes_from_schema(
-        schema: BaseModel, excludes: set = None
-    ) -> dict[str, Any]:
-        """Extracts the attributes from the schema.
-
-        :param schema: The schema to extract the attributes from.
-        :param excludes: The attributes to exclude.
-
-        :return: The attributes.
-        """
-
-        return await schema.dict(exclude=excludes, exclude_unset=True)
