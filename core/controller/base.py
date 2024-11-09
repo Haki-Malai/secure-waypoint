@@ -1,5 +1,4 @@
 from typing import Any, Generic, TypeVar
-from uuid import UUID
 
 from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError
@@ -18,12 +17,10 @@ class BaseController(Generic[ModelType]):
         self.model_class = model
         self.repository = repository
 
-    async def get_by_user_id(
-        self, user_id: int, join_: set[str] | None = None
-    ) -> ModelType:
+    async def get_by_user_id(self, user_id: int) -> ModelType:
         try:
             result = await self.repository.get_by(
-                field="user_id", value=user_id, join_=join_, unique=True
+                field="user_id", value=user_id, unique=True
             )
             if result:
                 return result
@@ -34,18 +31,15 @@ class BaseController(Generic[ModelType]):
         except Exception as e:
             raise e
 
-    async def get_by_id(self, id_: int, join_: set[str] | None = None) -> ModelType:
+    async def get_by_id(self, id_: int) -> ModelType:
         """Returns the model instance matching the id.
 
         :param id_: The id to match.
-        :param join_: The joins to make.
 
         :return: The model instance.
         """
 
-        db_obj = await self.repository.get_by(
-            field="id", value=id_, join_=join_, unique=True
-        )
+        db_obj = await self.repository.get_by(field="id", value=id_, unique=True)
         if not db_obj:
             raise NotFoundException(
                 f"{self.model_class.__tablename__.title()} with id: {id} does not exist"
@@ -53,37 +47,16 @@ class BaseController(Generic[ModelType]):
 
         return db_obj
 
-    async def get_by_uuid(self, uuid: UUID, join_: set[str] | None = None) -> ModelType:
-        """Returns the model instance matching the uuid.
-
-        :param uuid: The uuid to match.
-        :param join_: The joins to make.
-
-        :return: The model instance.
-        """
-
-        db_obj = await self.repository.get_by(
-            field="uuid", value=uuid, join_=join_, unique=True
-        )
-        if not db_obj:
-            raise NotFoundException(
-                f"{self.model_class.__tablename__.title()} with id: {uuid} does not exist"
-            )
-        return db_obj
-
-    async def get_all(
-        self, skip: int = 0, limit: int = 100, join_: set[str] | None = None
-    ) -> list[ModelType]:
+    async def get_all(self, skip: int = 0, limit: int = 100) -> list[ModelType]:
         """Returns a list of records based on pagination params.
 
         :param skip: The number of records to skip.
         :param limit: The number of records to return.
-        :param join_: The joins to make.
 
         :return: A list of records.
         """
 
-        response = await self.repository.get_all(skip, limit, join_)
+        response = await self.repository.get_all(skip, limit)
         return response
 
     async def create(self, attributes: dict[str, Any]) -> ModelType:
@@ -97,6 +70,17 @@ class BaseController(Generic[ModelType]):
             return await self.repository.create(attributes)
         except IntegrityError as e:
             raise BadRequestException(f"Database Integrity Error: {e.orig}")
+
+    async def update(self, id_: int, attributes: dict[str, Any]) -> ModelType:
+        """Updates the Object in the DB.
+
+        :param id_: The id of the object to update.
+        :param attributes: The attributes to update the object with.
+
+        :return: The updated object.
+        """
+        db_obj = await self.get_by_id(id_)
+        return await self.repository.update(db_obj, attributes)
 
     async def delete(self, model: ModelType) -> bool:
         """Deletes the Object from the DB.
