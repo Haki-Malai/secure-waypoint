@@ -1,6 +1,9 @@
 from app.models import User
 from app.repositories import UserRepository
+from app.schemas.extras import Token
 from core.controller import BaseController
+from core.exceptions import UnauthorizedException
+from core.security.jwt_handler import jwt_handler
 
 
 class UserController(BaseController[User]):
@@ -16,3 +19,19 @@ class UserController(BaseController[User]):
         :return: A list of users that match the query.
         """
         return await self.user_repository.search_by_username(query)
+
+    async def login(self, username: str, password: str) -> Token | None:
+        """Login a user with a username and password.
+
+        :param username: The username of the user.
+        :param password: The password of the user.
+
+        :return: True if the login is successful, False otherwise.
+        """
+        user = await self.user_repository.get_by_username(username)
+        if user and user.verify_password(password):
+            return Token(
+                access_token=jwt_handler.encode({"user_id": user.id}),
+                refresh_token=jwt_handler.encode({"sub": "refresh_token"}),
+            )
+        raise UnauthorizedException("Invalid username or password")

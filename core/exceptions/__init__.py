@@ -4,14 +4,12 @@ from core.exceptions.base import (
     ForbiddenException,
     NotFoundException,
     UnauthorizedException,
-    UnprocessableEntity,
 )
 
 __all__ = [
     "CustomException",
-    "BadRequestException",
     "NotFoundException",
-    "ForbiddenException",
+    "BadRequestException",
     "UnauthorizedException",
-    "UnprocessableEntity",
+    "ForbiddenException",
 ]
