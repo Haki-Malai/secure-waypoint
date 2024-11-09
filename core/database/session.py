@@ -36,7 +36,15 @@ engines = {
 
 
 class RoutingSession(Session):
-    def get_bind(self, mapper=None, clause=None, **kwargs):
+    def get_bind(self, mapper=None, clause=None, **kwargs) -> AsyncSession:
+        """Route database queries to the appropriate engine.
+
+        :param mapper: The mapper.
+        :param clause: The clause.
+        :param kwargs: Additional keyword arguments.
+
+        :return: The engine.
+        """
         if self._flushing or isinstance(clause, Update | Delete | Insert):
             return engines["writer"].sync_engine
         return engines["reader"].sync_engine
