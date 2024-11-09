@@ -24,9 +24,9 @@ async def get_user_by_id(
     return user
 
 
-@users_router.get("/search", response_model=list[UserResponse])
-async def search_users_by_name(
+@users_router.get("/search/", response_model=list[UserResponse])
+async def search_users_by_username(
     query: str, user_controller: UserController = Depends(Factory().get_user_controller)
 ):
-    users = await user_controller.search_by_name(query)
+    users = await user_controller.search_by_username(query)
     return users
