@@ -28,6 +28,7 @@ class BaseRepository(Generic[ModelType]):
             attributes = {}
         model = self.model_class(**attributes)
         self.session.add(model)
+        await self.session.commit()
         return model
 
     async def get_all(
@@ -79,6 +80,7 @@ class BaseRepository(Generic[ModelType]):
         :param model: The model to delete.
         """
         self.session.delete(model)
+        await self.session.commit()
 
     def _query(
         self, join_: set[str] | None = None, order_: dict | None = None

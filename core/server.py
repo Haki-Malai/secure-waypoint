@@ -29,8 +29,8 @@ def init_listeners(app_: FastAPI) -> None:
         request: Request, exc: CustomException  # noqa: ARG001
     ):
         return JSONResponse(
-            status_code=exc.code,
-            content={"error_code": exc.error_code, "message": exc.message},
+            status_code=exc.status_code,
+            content={"message": exc.message, "description": exc.description},
         )
 
 

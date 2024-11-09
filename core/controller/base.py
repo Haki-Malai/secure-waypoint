@@ -2,9 +2,10 @@ from typing import Any, Generic, TypeVar
 from uuid import UUID
 
 from pydantic import BaseModel
+from sqlalchemy.exc import IntegrityError
 
-from core.database import Base, Propagation, Transactional
-from core.exceptions import NotFoundException
+from core.database import Base
+from core.exceptions import BadRequestException, NotFoundException
 from core.repository import BaseRepository
 
 ModelType = TypeVar("ModelType", bound=Base)
@@ -85,7 +86,6 @@ class BaseController(Generic[ModelType]):
         response = await self.repository.get_all(skip, limit, join_)
         return response
 
-    @Transactional(propagation=Propagation.REQUIRED)
     async def create(self, attributes: dict[str, Any]) -> ModelType:
         """Creates a new Object in the DB.
 
@@ -93,10 +93,11 @@ class BaseController(Generic[ModelType]):
 
         :return: The created object.
         """
-        create = await self.repository.create(attributes)
-        return create
+        try:
+            return await self.repository.create(attributes)
+        except IntegrityError as e:
+            raise BadRequestException(f"Database Integrity Error: {e.orig}")
 
-    @Transactional(propagation=Propagation.REQUIRED)
     async def delete(self, model: ModelType) -> bool:
         """Deletes the Object from the DB.
 
