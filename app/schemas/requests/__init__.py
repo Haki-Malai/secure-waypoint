@@ -1,1 +1,3 @@
-from .users import RegisterUserRequest  # noqa F401
+from .users import RegisterUserRequest
+
+__all__ = ["RegisterUserRequest"]
