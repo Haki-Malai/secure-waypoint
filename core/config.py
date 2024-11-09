@@ -18,6 +18,10 @@ class Config(BaseSettings):
     DEBUG: bool = False
     ENVIRONMENT: EnvironmentType = EnvironmentType.DEVELOPMENT
 
+    SECRET_KEY: str
+    JWT_ALGORITHM: str = "HS256"
+    JWT_EXPIRE_MINUTES: int = 60 * 24
+
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_HOST: str

@@ -7,7 +7,12 @@ from api import router
 from core.config import config
 from core.exceptions import CustomException
 from core.fastapi.dependencies import Logging
-from core.fastapi.middlewares import ResponseLoggerMiddleware, SQLAlchemyMiddleware
+from core.fastapi.middlewares import (
+    AuthBackend,
+    AuthenticationMiddleware,
+    ResponseLoggerMiddleware,
+    SQLAlchemyMiddleware,
+)
 
 
 def init_routers(app_: FastAPI) -> None:
@@ -49,6 +54,7 @@ def make_middleware() -> list[Middleware]:
         ),
         Middleware(SQLAlchemyMiddleware),
         Middleware(ResponseLoggerMiddleware),
+        Middleware(AuthenticationMiddleware, backend=AuthBackend()),
     ]
     return middleware
 

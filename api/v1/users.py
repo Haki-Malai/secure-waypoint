@@ -4,8 +4,16 @@ from app.controllers import UserController
 from app.schemas.requests import RegisterUserRequest
 from app.schemas.responses import UserResponse
 from core.factory import Factory
+from core.fastapi.dependencies import AuthenticationRequired, get_current_user
 
 users_router = APIRouter(prefix="/users", tags=["Users"])
+
+
+@users_router.post(
+    "/me", dependencies=[Depends(AuthenticationRequired)], response_model=UserResponse
+)
+async def me(current_user: UserResponse = Depends(get_current_user)):
+    return current_user
 
 
 @users_router.post("", response_model=UserResponse)
