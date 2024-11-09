@@ -21,6 +21,9 @@ dependencies = [
     "pyjwt<3.0.0,>=2.8.0",
     "sqlalchemy>=2.0.35",
     "psycopg2-binary>=2.9.10",
+    "nest-asyncio>=1.6.0",
+    "asyncpg>=0.30.0",
+    "ipython>=8.29.0",
 ]
 
 [tool.uv]
