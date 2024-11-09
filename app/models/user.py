@@ -9,7 +9,7 @@ class User(Base, TimestampMixin):
     __tablename__ = "users"
 
     id: so.Mapped[int] = so.mapped_column(sa.Integer, primary_key=True)
-    username: so.Mapped[str] = so.mapped_column(sa.String)
+    username: so.Mapped[str] = so.mapped_column(sa.String, unique=True, index=True)
 
     def __repr__(self) -> str:
         return f"<User {self.username}>"

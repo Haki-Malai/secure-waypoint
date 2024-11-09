@@ -1,7 +1,6 @@
 from core.exceptions.base import (
     BadRequestException,
     CustomException,
-    DuplicateValueException,
     ForbiddenException,
     NotFoundException,
     UnauthorizedException,
@@ -15,5 +14,4 @@ __all__ = [
     "ForbiddenException",
     "UnauthorizedException",
     "UnprocessableEntity",
-    "DuplicateValueException",
 ]

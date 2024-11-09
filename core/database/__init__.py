@@ -6,7 +6,6 @@ from core.database.session import (
     set_session_context,
 )
 from core.database.standalone_session import standalone_session
-from core.database.transactional import Propagation, Transactional
 
 __all__ = [
     "Base",
@@ -15,6 +14,4 @@ __all__ = [
     "set_session_context",
     "reset_session_context",
     "standalone_session",
-    "Transactional",
-    "Propagation",
 ]
