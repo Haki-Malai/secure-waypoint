@@ -36,6 +36,15 @@ async def client(
         yield client
 
 
+@pytest_asyncio.fixture(scope="function")
+async def user(db_session: AsyncSession) -> AsyncGenerator[User, None]:
+    """Create a user in the database."""
+    user = User(username="user", password="password", role=Role.USER)
+    db_session.add(user)
+    await db_session.commit()
+    yield user
+
+
 @pytest_asyncio.fixture
 async def authenticated_client(
     client: AsyncClient, db_session: AsyncSession, role: Role

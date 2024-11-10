@@ -35,3 +35,23 @@ class UserController(BaseController[User]):
                 refresh_token=jwt_handler.encode({"sub": "refresh_token"}),
             )
         raise UnauthorizedException("Invalid username or password")
+
+    async def refresh_token(self, access_token: str, refresh_token: str) -> Token:
+        """Refresh a token.
+
+        :param token: The token to refresh.
+
+        :return: A new token.
+        """
+        refresh_token_payload = jwt_handler.decode(refresh_token)
+        access_token_payload = jwt_handler.decode(access_token)
+        try:
+            if refresh_token_payload["sub"] == "refresh_token":
+                return Token(
+                    access_token=jwt_handler.encode(
+                        {"user_id": access_token_payload["user_id"]}
+                    ),
+                    refresh_token=jwt_handler.encode({"sub": "refresh_token"}),
+                )
+        except KeyError:
+            raise UnauthorizedException("Invalid token")
