@@ -11,7 +11,7 @@ from core.security.require_role import require_role
 users_router = APIRouter(prefix="/users", tags=["Users"])
 
 
-@users_router.post(
+@users_router.get(
     "/me", dependencies=[Depends(AuthenticationRequired)], response_model=UserResponse
 )
 async def me(current_user: UserResponse = Depends(get_current_user)):
