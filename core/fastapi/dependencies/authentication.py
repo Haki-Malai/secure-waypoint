@@ -7,7 +7,9 @@ from core.exceptions.base import UnauthorizedException
 class AuthenticationRequired:
     def __init__(
         self,
-        token: HTTPAuthorizationCredentials = Depends(HTTPBearer(auto_error=False)),
+        access_token: HTTPAuthorizationCredentials = Depends(
+            HTTPBearer(auto_error=False)
+        ),
     ):
-        if not token:
-            raise UnauthorizedException("Token is required")
+        if not access_token:
+            raise UnauthorizedException("Access token is required")
