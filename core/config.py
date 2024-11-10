@@ -30,7 +30,7 @@ class Config(BaseSettings):
 
     @computed_field
     @property
-    def ASYNC_SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:
+    def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:
         return MultiHostUrl.build(
             scheme="postgresql+asyncpg",
             username=self.POSTGRES_USER,
@@ -39,11 +39,6 @@ class Config(BaseSettings):
             port=self.POSTGRES_PORT,
             path=self.POSTGRES_DB,
         )
-
-    @computed_field
-    @property
-    def SQLALCHEMY_DATABASE_URI(self) -> str:
-        return str(self.ASYNC_SQLALCHEMY_DATABASE_URI).replace("+asyncpg", "")
 
     class Config:
         env_file = ".env"

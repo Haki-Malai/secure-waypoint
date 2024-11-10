@@ -1,6 +1,8 @@
-import psycopg2
+import asyncio
+
 import typer
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from app.models import Base
 from core.config import config
@@ -8,64 +10,85 @@ from core.config import config
 app = typer.Typer()
 
 
+def get_async_engine() -> AsyncEngine:
+    """Get the async engine for the database.
+
+    :return: The async engine.
+    """
+    return create_async_engine(str(config.SQLALCHEMY_DATABASE_URI))
+
+
+async def async_init():
+    """Initialize the database."""
+    engine = get_async_engine()
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+        print("Database initialized.")
+
+
+async def async_drop(tables: str):
+    """Helper function to drop tables asynchronously.
+
+    :param tables: Specify 'all' to drop all tables, or provide a specific table prefix.
+    """
+    engine = get_async_engine()
+    async with engine.begin() as conn:
+        if tables == "all":
+            await conn.run_sync(Base.metadata.drop_all)
+            print("All tables dropped")
+        else:
+            drop_script = text(
+                """
+                DO $$
+                DECLARE
+                    r RECORD;
+                BEGIN
+                    FOR r IN (SELECT tablename FROM pg_tables
+                              WHERE schemaname = 'public' AND tablename LIKE :table_name)
+                    LOOP
+                        EXECUTE 'DROP TABLE ' || quote_ident(r.tablename) || ' CASCADE';
+                    END LOOP;
+                END $$;
+            """
+            )
+            await conn.execute(drop_script, {"table_name": f"{tables}%"})
+            print("Tables dropped successfully.")
+
+
+async def async_view():
+    """Helper function to view all tables asynchronously."""
+    engine = get_async_engine()
+    async with engine.connect() as conn:
+        result = await conn.execute(
+            text(
+                "SELECT table_name FROM information_schema.tables WHERE table_schema='public'"
+            )
+        )
+        tables = [row[0] for row in result]
+        print("Tables in the database:")
+        for table in tables:
+            print(table)
+
+
 @app.command()
 def init():
     """Initialize the database."""
-    engine = create_engine(
-        config.SQLALCHEMY_DATABASE_URI, pool_size=30, max_overflow=20, echo=False
-    )
-    Base.metadata.create_all(engine)
-    print("Database initialized")
+    asyncio.run(async_init())
 
 
 @app.command()
 def drop(tables: str = typer.Argument(None)):
-    """Drop all tables in the database.
+    """Drop tables in the database asynchronously.
 
-    :param tables: The tables to drop. Default is 'all'.
+    :param tables: Specify 'all' to drop all tables, or provide a specific table prefix.
     """
-    if tables == "all":
-        engine = create_engine(
-            config.SQLALCHEMY_DATABASE_URI, pool_size=30, max_overflow=20, echo=False
-        )
-        Base.metadata.drop_all(engine)
-        print("All tables dropped")
-        return
-
-    DROP_TABLES_SCRIPT = """
-        DO $$
-        DECLARE
-            r RECORD;
-        BEGIN
-            FOR r IN (SELECT table_name FROM information_schema.tables
-            WHERE table_schema = 'public' AND table_name LIKE %s)
-            LOOP
-                EXECUTE 'DROP TABLE ' || quote_ident(r.table_name) || ' CASCADE';
-            END LOOP;
-        END $$;
-    """
-    try:
-        conn = psycopg2.connect(config.SQLALCHEMY_DATABASE_URI)
-        cursor = conn.cursor()
-        cursor.execute(DROP_TABLES_SCRIPT, (f"{tables}%",))
-        conn.commit()
-        print("Tables dropped successfully.")
-    except psycopg2.Error as e:
-        print("Error dropping tables:", e)
-    finally:
-        if conn is not None:
-            conn.close()
+    asyncio.run(async_drop(tables))
 
 
 @app.command()
 def view():
     """View all tables in the database."""
-    engine = create_engine(config.SQLALCHEMY_DATABASE_URI, echo=False)
-    inspector = inspect(engine)
-    tables = inspector.get_table_names()
-    print("Tables in the database:")
-    for table in tables:
-        print(table)
+    asyncio.run(async_view())
 
 
 if __name__ == "__main__":
