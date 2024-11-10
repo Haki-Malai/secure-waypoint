@@ -72,7 +72,8 @@ class BaseRepository(Generic[ModelType]):
         :return: The updated model instance.
         """
         for key, value in attributes.items():
-            setattr(model, key, value)
+            if value:
+                setattr(model, key, value)
 
         self.session.add(model)
         await self.session.commit()

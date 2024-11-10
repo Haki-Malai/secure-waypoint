@@ -51,6 +51,6 @@ async def authenticated_client(
     headers = {"Authorization": f"Basic {encoded_credentials}"}
 
     response = await client.post("/api/v1/tokens", headers=headers)
-    token = response.json()["access_token"]
-    client.headers.update({"Authorization": f"Bearer {token}"})
+    access_token = response.json()["access_token"]
+    client.headers.update({"Authorization": f"Bearer {access_token}"})
     yield client
