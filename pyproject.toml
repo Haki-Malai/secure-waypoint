@@ -26,6 +26,7 @@ dependencies = [
     "ipython>=8.29.0",
     "python-jose>=3.3.0",
     "pytest-asyncio>=0.23.8",
+    "faker>=30.8.2",
 ]
 
 [tool.uv]
