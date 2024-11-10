@@ -27,10 +27,10 @@ def reset_session_context(context: Token) -> None:
 
 engines = {
     "writer": create_async_engine(
-        str(config.ASYNC_SQLALCHEMY_DATABASE_URI), pool_recycle=3600
+        str(config.SQLALCHEMY_DATABASE_URI), pool_recycle=3600
     ),
     "reader": create_async_engine(
-        str(config.ASYNC_SQLALCHEMY_DATABASE_URI), pool_recycle=3600
+        str(config.SQLALCHEMY_DATABASE_URI), pool_recycle=3600
     ),
 }
 
