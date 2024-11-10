@@ -14,4 +14,6 @@ COPY pyproject.toml poetry.lock* ./
 RUN poetry config virtualenvs.create false \
     && poetry install --no-interaction --no-ansi
 
+RUN python -m cli db init
+
 COPY . .
