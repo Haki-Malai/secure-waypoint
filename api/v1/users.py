@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 
 from app.controllers import UserController
 from app.models import Role
@@ -25,6 +25,7 @@ async def me(current_user: UserResponse = Depends(get_current_user)):
         Depends(require_role(Role.MODERATOR)),
     ],
     response_model=UserResponse,
+    status_code=status.HTTP_201_CREATED,
 )
 async def create_user(
     user_request: RegisterUserRequest,
