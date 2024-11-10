@@ -1,25 +1,18 @@
 from fastapi import APIRouter, Depends, status
 
 from app.controllers import UserController
-from app.models import Role
-from app.schemas.requests import RegisterUserRequest
+from app.models import Role, User
+from app.schemas.requests import RegisterUserRequest, UpdateUserRequest
 from app.schemas.responses import UserResponse
 from core.factory import Factory
 from core.fastapi.dependencies import AuthenticationRequired, get_current_user
 from core.security.require_role import require_role
 
-users_router = APIRouter(prefix="/users", tags=["Users"])
-
-
-@users_router.get(
-    "/me", dependencies=[Depends(AuthenticationRequired)], response_model=UserResponse
-)
-async def me(current_user: UserResponse = Depends(get_current_user)):
-    return current_user
+users_router = APIRouter(tags=["Users"])
 
 
 @users_router.post(
-    "",
+    "/users",
     dependencies=[
         Depends(AuthenticationRequired),
         Depends(require_role(Role.MODERATOR)),
@@ -35,7 +28,7 @@ async def create_user(
 
 
 @users_router.get(
-    "",
+    "/users",
     dependencies=[Depends(AuthenticationRequired)],
     response_model=list[UserResponse],
 )
@@ -46,7 +39,7 @@ async def get_users(
 
 
 @users_router.get(
-    "/{user_id}",
+    "/users/{user_id}",
     dependencies=[Depends(AuthenticationRequired)],
     response_model=UserResponse,
 )
@@ -58,7 +51,7 @@ async def get_user_by_id(
 
 
 @users_router.get(
-    "/search/",
+    "/users/search/",
     dependencies=[Depends(AuthenticationRequired)],
     response_model=list[UserResponse],
 )
@@ -69,7 +62,7 @@ async def search_users_by_username(
 
 
 @users_router.put(
-    "/{user_id}",
+    "/users/{user_id}",
     dependencies=[
         Depends(AuthenticationRequired),
         Depends(require_role(Role.MODERATOR)),
@@ -78,18 +71,50 @@ async def search_users_by_username(
 )
 async def update_user(
     user_id: int,
-    user_request: RegisterUserRequest,
+    user_request: UpdateUserRequest,
     user_controller: UserController = Depends(Factory().get_user_controller),
 ):
     return await user_controller.update(user_id, user_request.dict())
 
 
 @users_router.delete(
-    "/{user_id}",
+    "/users/{user_id}",
     dependencies=[Depends(AuthenticationRequired), Depends(require_role(Role.ADMIN))],
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_user(
     user_id: int,
     user_controller: UserController = Depends(Factory().get_user_controller),
 ):
     return await user_controller.delete(user_id)
+
+
+@users_router.get(
+    "/me", dependencies=[Depends(AuthenticationRequired)], response_model=UserResponse
+)
+async def me(current_user: User = Depends(get_current_user)):
+    return current_user
+
+
+@users_router.put(
+    "/me", dependencies=[Depends(AuthenticationRequired)], response_model=UserResponse
+)
+async def update_me(
+    user_request: UpdateUserRequest,
+    user_controller: UserController = Depends(Factory().get_user_controller),
+    current_user: UserResponse = Depends(get_current_user),
+):
+    return await user_controller.update(current_user.id, user_request.dict())
+
+
+@users_router.delete(
+    "/me",
+    dependencies=[Depends(AuthenticationRequired)],
+    response_model=None,
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_me(
+    user_controller: UserController = Depends(Factory().get_user_controller),
+    current_user: UserResponse = Depends(get_current_user),
+):
+    return await user_controller.delete(current_user.id)
