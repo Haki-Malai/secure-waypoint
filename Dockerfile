@@ -1,7 +1,5 @@
 FROM python:3.12-slim
 
-WORKDIR /app
-
 RUN apt-get update \
     && apt-get install -y --no-install-recommends gcc libpq-dev \
     && apt-get clean \
@@ -14,6 +12,9 @@ COPY pyproject.toml poetry.lock* ./
 RUN poetry config virtualenvs.create false \
     && poetry install --no-interaction --no-ansi
 
-RUN python -m cli db init
-
-COPY . .
+COPY api api
+COPY app app
+COPY core core
+COPY cli cli
+COPY main.py main.py
+COPY .env .env
