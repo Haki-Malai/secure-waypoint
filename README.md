@@ -25,6 +25,8 @@ Secure-Waypoint is built with a focus on security and efficiency, offering the f
 
   - Scalability: Uses best practices for building scalable, maintainable and secure applications.
 
+  - CLI Management: Provides a CLI tool for database management, shell access, and other administrative tasks.
+
 ## Prerequisites
 
 Before you begin, ensure you have Docker installed on your machine. You will also need Poetry for Python dependency management.
@@ -68,7 +70,7 @@ To run the automated tests:
 
     - Execute the tests using pytest:
         ```bash
-        pytest
+        poetry run pytest
         ```
 
 ## Deployment
