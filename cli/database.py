@@ -2,9 +2,11 @@ import asyncio
 
 import typer
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
 
-from app.models import Base
+from app.models import Base, User
 from core.config import config
 
 app = typer.Typer()
@@ -24,6 +26,20 @@ async def async_init():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         print("Database initialized.")
+
+    async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+    async with async_session() as session:
+        async with session.begin():
+            try:
+                admin = User(
+                    username=config.ADMIN_USERNAME, password=config.ADMIN_PASSWORD
+                )
+                session.add(admin)
+                await session.commit()
+                print("Admin user created.")
+            except IntegrityError:
+                print("Admin user already exists.")
 
 
 async def async_drop(tables: str):

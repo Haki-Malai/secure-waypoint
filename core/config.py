@@ -28,6 +28,9 @@ class Config(BaseSettings):
     POSTGRES_PORT: int = 5432
     POSTGRES_DB: str
 
+    ADMIN_USERNAME: str
+    ADMIN_PASSWORD: str
+
     @computed_field
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:
