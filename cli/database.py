@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.models import Base, User
+from app.models import Base, Role, User
 from core.config import config
 
 app = typer.Typer()
@@ -33,7 +33,9 @@ async def async_init():
         async with session.begin():
             try:
                 admin = User(
-                    username=config.ADMIN_USERNAME, password=config.ADMIN_PASSWORD
+                    username=config.ADMIN_USERNAME,
+                    password=config.ADMIN_PASSWORD,
+                    role=Role.ADMIN,
                 )
                 session.add(admin)
                 await session.commit()
