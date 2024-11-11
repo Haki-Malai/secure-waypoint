@@ -43,6 +43,30 @@ class BaseRepository(Generic[ModelType]):
 
         return await self._all_unique(query)
 
+    async def get_filtered(
+        self, filters: dict[str, Any] | None = None, skip: int = 0, limit: int = 100
+    ) -> list[ModelType]:
+        """Retrieves a filtered list of model instances based on provided filters.
+
+        :param filters: A dictionary where keys are the model fields and values are the values to filter by.
+        :param skip: The number of records to skip.
+        :param limit: The number of records to return.
+
+        :return: A list of model instances.
+        """
+        query = select(self.model_class)
+        if filters:
+            for field, value in filters.items():
+                if isinstance(value, tuple | list) and len(value) == 2:
+                    query = query.where(
+                        getattr(self.model_class, field).between(*value)
+                    )
+                else:
+                    query = query.where(getattr(self.model_class, field) == value)
+
+        query = query.offset(skip).limit(limit)
+        return await self._all_unique(query)
+
     async def get_by(
         self,
         field: str,

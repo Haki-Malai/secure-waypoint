@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, status
+from datetime import datetime
+
+from fastapi import APIRouter, Depends, Query, status
 
 from app.controllers import UserController
 from app.models import Role, User
@@ -33,9 +35,18 @@ async def create_user(
     response_model=list[UserResponse],
 )
 async def get_users(
+    skip: int = Query(0, description="Number of records to skip"),
+    limit: int = Query(100, description="Number of records to return"),
+    creation_year: int = Query(None, description="Filter by year of creation"),
     user_controller: UserController = Depends(Factory().get_user_controller),
 ):
-    return await user_controller.get_all()
+    filters = {}
+    if creation_year:
+        start_date = datetime(creation_year, 1, 1)
+        end_date = datetime(creation_year + 1, 1, 1)
+        filters["created_at"] = (start_date, end_date)
+
+    return await user_controller.get_filtered(filters=filters, skip=skip, limit=limit)
 
 
 @users_router.get(

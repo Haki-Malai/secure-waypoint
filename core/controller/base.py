@@ -39,6 +39,19 @@ class BaseController(Generic[ModelType]):
 
         return await self.repository.get_all(skip, limit)
 
+    async def get_filtered(
+        self, filters: dict[str, Any] | None = None, skip: int = 0, limit: int = 100
+    ) -> list[ModelType]:
+        """Retrieves a filtered list of model instances based on provided filters.
+
+        :param filters: A dictionary where keys are the model fields and values are the values to filter by.
+        :param skip: The number of records to skip.
+        :param limit: The number of records to return.
+
+        :return: A list of model instances.
+        """
+        return await self.repository.get_filtered(filters, skip, limit)
+
     async def get_by_id(self, id_: int) -> ModelType:
         """Returns the model instance matching the id.
 
