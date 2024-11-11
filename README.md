@@ -15,13 +15,15 @@ Secure-Waypoint is built with a focus on security and efficiency, offering the f
     - Fetch single user details or list all users with support for pagination and filtering by creation year.
     - Search users by username.
 
-  - Health Checks: An endpoint to check the health of the application, ensuring operational status is always visible.
-
   - API Documentation: Automatically generated OpenAPI documentation, making it easy to understand and interact with the API.
 
   - Secure Deployment: Dockerized environment with separate services for the application, PostgreSQL database, and Nginx web server, ensuring easy and secure deployments.
 
   - Testing: Comprehensive test suite with high coverage, ensuring the reliability and correctness of the application.
+
+  - Logging: Centralized logging with log rotation and log level configuration for monitoring and debugging.
+
+  - Scalability: Uses best practices for building scalable, maintainable and secure applications.
 
 ## Prerequisites
 

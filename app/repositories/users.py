@@ -1,3 +1,5 @@
+from collections.abc import Sequence
+
 from sqlalchemy.future import select
 
 from app.models.user import User
@@ -17,7 +19,7 @@ class UserRepository(BaseRepository[User]):
         )
         return result.scalar()
 
-    async def search_by_username(self, query: str) -> list[User]:
+    async def search_by_username(self, query: str) -> Sequence[User]:
         """Get users by username using a query.
 
         :param query: The query to search for.
