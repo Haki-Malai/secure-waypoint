@@ -1,12 +1,11 @@
 import logging
 
 import uvicorn
-from fastapi import FastAPI
 
 from core.config import config
 
 
-def get_application() -> FastAPI:
+def get_application():
     """Create FastAPI application
 
     :return: the FastAPI application
