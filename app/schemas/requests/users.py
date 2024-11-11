@@ -27,6 +27,11 @@ class UpdateUserRequest(BaseUserRequest):
     password: constr(min_length=8, max_length=64) | None = None
 
 
+class UpdateSelfRequest(BaseUserRequest):
+    username: constr(min_length=3, max_length=64) | None = None
+    password: constr(min_length=8, max_length=64) | None = None
+
+
 class UserPagination(BaseModel):
     skip: int = 0
     limit: int = 10

@@ -4,7 +4,12 @@ from fastapi import APIRouter, Depends, status
 
 from app.controllers import UserController
 from app.models import Role, User
-from app.schemas.requests import RegisterUserRequest, UpdateUserRequest, UserPagination
+from app.schemas.requests import (
+    RegisterUserRequest,
+    UpdateSelfRequest,
+    UpdateUserRequest,
+    UserPagination,
+)
 from app.schemas.responses import UserResponse
 from core.factory import Factory
 from core.fastapi.dependencies import AuthenticationRequired, get_current_user
@@ -111,7 +116,7 @@ async def me(current_user: User = Depends(get_current_user)):
     "/me", dependencies=[Depends(AuthenticationRequired)], response_model=UserResponse
 )
 async def update_me(
-    user_request: UpdateUserRequest,
+    user_request: UpdateSelfRequest,
     user_controller: UserController = Depends(Factory().get_user_controller),
     current_user: UserResponse = Depends(get_current_user),
 ):

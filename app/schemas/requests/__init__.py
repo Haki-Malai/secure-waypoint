@@ -1,3 +1,13 @@
-from .users import RegisterUserRequest, UpdateUserRequest, UserPagination
+from .users import (
+    RegisterUserRequest,
+    UpdateSelfRequest,
+    UpdateUserRequest,
+    UserPagination,
+)
 
-__all__ = ["RegisterUserRequest", "UpdateUserRequest", "UserPagination"]
+__all__ = [
+    "RegisterUserRequest",
+    "UpdateUserRequest",
+    "UserPagination",
+    "UpdateSelfRequest",
+]
