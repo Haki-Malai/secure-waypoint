@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from typing import Any, Generic, TypeVar
 
 from sqlalchemy.exc import IntegrityError
@@ -28,7 +29,7 @@ class BaseController(Generic[ModelType]):
         except IntegrityError as e:
             raise BadRequestException(f"Database Integrity Error: {e.orig}")
 
-    async def get_all(self, skip: int = 0, limit: int = 100) -> list[ModelType]:
+    async def get_all(self, skip: int = 0, limit: int = 100) -> Sequence[ModelType]:
         """Returns a list of records based on pagination params.
 
         :param skip: The number of records to skip.
@@ -41,7 +42,7 @@ class BaseController(Generic[ModelType]):
 
     async def get_filtered(
         self, filters: dict[str, Any] | None = None, skip: int = 0, limit: int = 100
-    ) -> list[ModelType]:
+    ) -> Sequence[ModelType]:
         """Retrieves a filtered list of model instances based on provided filters.
 
         :param filters: A dictionary where keys are the model fields and values are the values to filter by.
@@ -52,7 +53,7 @@ class BaseController(Generic[ModelType]):
         """
         return await self.repository.get_filtered(filters, skip, limit)
 
-    async def get_by_id(self, id_: int) -> ModelType:
+    async def get_by_id(self, id_: int) -> ModelType | None:
         """Returns the model instance matching the id.
 
         :param id_: The id to match.

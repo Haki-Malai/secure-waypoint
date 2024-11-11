@@ -1,6 +1,7 @@
+from collections.abc import Sequence
 from typing import Any, Generic, TypeVar
 
-from sqlalchemy import Select, func
+from sqlalchemy import Select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import select
 
@@ -16,7 +17,7 @@ class BaseRepository(Generic[ModelType]):
         self.session: AsyncSession = db_session
         self.model_class: type[ModelType] = model
 
-    async def create(self, attributes: dict[str, Any] = None) -> ModelType:
+    async def create(self, attributes: dict[str, Any] | None = None) -> ModelType:
         """Creates the model instance.
 
         :param attributes: The attributes to create the model with.
@@ -30,7 +31,7 @@ class BaseRepository(Generic[ModelType]):
         await self.session.commit()
         return model
 
-    async def get_all(self, skip: int = 0, limit: int = 100) -> list[ModelType]:
+    async def get_all(self, skip: int = 0, limit: int = 100) -> Sequence[ModelType]:
         """Returns a list of model instances.
 
         :param skip: The number of records to skip.
@@ -45,7 +46,7 @@ class BaseRepository(Generic[ModelType]):
 
     async def get_filtered(
         self, filters: dict[str, Any] | None = None, skip: int = 0, limit: int = 100
-    ) -> list[ModelType]:
+    ) -> Sequence[ModelType]:
         """Retrieves a filtered list of model instances based on provided filters.
 
         :param filters: A dictionary where keys are the model fields and values are the values to filter by.
@@ -72,7 +73,7 @@ class BaseRepository(Generic[ModelType]):
         field: str,
         value: Any,
         unique: bool = False,
-    ) -> ModelType:
+    ) -> ModelType | Sequence[ModelType] | None:
         """Returns the model instance matching the field and value.
 
         :param field: The field to match.
@@ -111,7 +112,7 @@ class BaseRepository(Generic[ModelType]):
         await self.session.delete(model)
         await self.session.commit()
 
-    async def _all(self, query: Select) -> list[ModelType]:
+    async def _all(self, query: Select) -> Sequence[ModelType]:
         """Returns all results from the query.
 
         :param query: The query to execute.
@@ -121,7 +122,7 @@ class BaseRepository(Generic[ModelType]):
         result = await self.session.execute(query)
         return result.scalars().all()
 
-    async def _all_unique(self, query: Select) -> list[ModelType]:
+    async def _all_unique(self, query: Select) -> Sequence[ModelType]:
         """Returns all unique results from the query.
 
         :param query: The query to execute.
@@ -142,7 +143,7 @@ class BaseRepository(Generic[ModelType]):
 
         return results.scalar()
 
-    async def _one(self, query: Select) -> ModelType:
+    async def _one(self, query: Select) -> ModelType | None:
         """Returns the first result from the query or raises NoResultFound.
 
         :param query: The query to execute.
@@ -151,16 +152,6 @@ class BaseRepository(Generic[ModelType]):
         """
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
-
-    async def _count(self, query: Select) -> int:
-        """Returns the count of the records.
-
-        :param query: The query to execute.
-        """
-        query = query.subquery()
-        query = await self.session.scalars(select(func.count()).select_from(query))
-
-        return query.one()
 
     async def _get_by(self, query: Select, field: str, value: Any) -> Select:
         """Returns the query filtered by the given column.
