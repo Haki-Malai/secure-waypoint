@@ -1,3 +1,5 @@
+from collections.abc import Sequence
+
 from app.models import User
 from app.repositories import UserRepository
 from app.schemas.extras import Token
@@ -11,7 +13,7 @@ class UserController(BaseController[User]):
         super().__init__(model=User, repository=user_repository)
         self.user_repository = user_repository
 
-    async def search_by_username(self, query: str) -> list[User]:
+    async def search_by_username(self, query: str) -> Sequence[User]:
         """Search for users by username using a query.
 
         :param query: The query to search for.
@@ -36,7 +38,9 @@ class UserController(BaseController[User]):
             )
         raise UnauthorizedException("Invalid username or password")
 
-    async def refresh_token(self, access_token: str, refresh_token: str) -> Token:
+    async def refresh_token(
+        self, access_token: str, refresh_token: str
+    ) -> Token | None:
         """Refresh a token.
 
         :param token: The token to refresh.

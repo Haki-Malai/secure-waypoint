@@ -1,5 +1,6 @@
 from contextvars import ContextVar, Token
 
+from sqlalchemy.engine import Engine
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_scoped_session,
@@ -36,7 +37,7 @@ engines = {
 
 
 class RoutingSession(Session):
-    def get_bind(self, mapper=None, clause=None, **kwargs) -> AsyncSession:
+    def get_bind(self, mapper=None, clause=None, **kwargs) -> Engine:
         """Route database queries to the appropriate engine.
 
         :param mapper: The mapper.
