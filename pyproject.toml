@@ -27,6 +27,7 @@ nest-asyncio = "^1.6.0"
 asyncpg = "^0.30.0"
 ipython = "^8.29.0"
 python-jose = "^3.3.0"
+greenlet = "^3.2.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.4.3"
