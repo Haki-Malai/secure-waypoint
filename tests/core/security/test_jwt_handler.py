@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from jose import JWTError, jwt
@@ -15,7 +15,7 @@ def mock_payload():
 
 @pytest.fixture
 def mock_token(mock_payload):
-    expire = datetime.utcnow() + timedelta(minutes=config.JWT_EXPIRE_MINUTES)
+    expire = datetime.now(UTC) + timedelta(minutes=config.JWT_EXPIRE_MINUTES)
     payload = mock_payload.copy()
     payload.update({"exp": expire})
     return jwt.encode(payload, config.SECRET_KEY, algorithm=config.JWT_ALGORITHM)
@@ -24,7 +24,7 @@ def mock_token(mock_payload):
 @pytest.fixture
 def mock_expired_token(mock_payload):
     expire = (
-        datetime.utcnow()
+        datetime.now(UTC)
         - timedelta(minutes=config.JWT_EXPIRE_MINUTES)
         - timedelta(seconds=10)
     )

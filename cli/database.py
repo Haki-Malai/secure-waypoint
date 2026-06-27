@@ -55,8 +55,7 @@ async def async_drop(tables: str):
             await conn.run_sync(Base.metadata.drop_all)
             print("All tables dropped")
         else:
-            drop_script = text(
-                """
+            drop_script = text("""
                 DO $$
                 DECLARE
                     r RECORD;
@@ -67,8 +66,7 @@ async def async_drop(tables: str):
                         EXECUTE 'DROP TABLE ' || quote_ident(r.tablename) || ' CASCADE';
                     END LOOP;
                 END $$;
-            """
-            )
+            """)
             await conn.execute(drop_script, {"table_name": f"{tables}%"})
             print("Tables dropped successfully.")
 

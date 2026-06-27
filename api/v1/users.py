@@ -31,7 +31,7 @@ async def create_user(
     user_request: RegisterUserRequest,
     user_controller: UserController = Depends(Factory().get_user_controller),
 ):
-    return await user_controller.create(user_request.dict())
+    return await user_controller.create(user_request.model_dump())
 
 
 @users_router.get(
@@ -90,7 +90,7 @@ async def update_user(
     user_request: UpdateUserRequest,
     user_controller: UserController = Depends(Factory().get_user_controller),
 ):
-    return await user_controller.update(user_id, user_request.dict())
+    return await user_controller.update(user_id, user_request.model_dump())
 
 
 @users_router.delete(
@@ -120,7 +120,7 @@ async def update_me(
     user_controller: UserController = Depends(Factory().get_user_controller),
     current_user: UserResponse = Depends(get_current_user),
 ):
-    return await user_controller.update(current_user.id, user_request.dict())
+    return await user_controller.update(current_user.id, user_request.model_dump())
 
 
 @users_router.delete(

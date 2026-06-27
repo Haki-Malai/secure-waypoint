@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from jose import jwt
 
@@ -12,7 +12,7 @@ class JWTHandler:
     expire_minutes = config.JWT_EXPIRE_MINUTES
 
     def encode(self, payload: dict) -> str:
-        expire = datetime.now() + timedelta(minutes=self.expire_minutes)
+        expire = datetime.now(UTC) + timedelta(minutes=self.expire_minutes)
         payload.update({"exp": expire})
         return jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
 

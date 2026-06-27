@@ -1,17 +1,23 @@
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import PostgresDsn, computed_field
 from pydantic_core import MultiHostUrl
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class EnvironmentType(str, Enum):
+class EnvironmentType(StrEnum):
     DEVELOPMENT = "development"
     PRODUCTION = "production"
     TESTING = "testing"
 
 
 class Config(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_ignore_empty=True,
+        extra="ignore",
+    )
+
     TITLE: str = "Secure Waypoint"
     DESCRIPTION: str = "Secure Waypoint - Authentication and Authorization"
     RELEASE_VERSION: str = "0.0.1"
@@ -42,11 +48,6 @@ class Config(BaseSettings):
             port=self.POSTGRES_PORT,
             path=self.POSTGRES_DB,
         )
-
-    class Config:
-        env_file = ".env"
-        env_ignore_empty = True
-        extra = "ignore"
 
 
 config: Config = Config()
