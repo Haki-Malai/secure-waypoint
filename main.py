@@ -3,12 +3,15 @@ import logging
 import uvicorn
 
 from core.config import config
+from core.server import app
+
+__all__ = ["app"]
 
 
-def get_application():
-    """Create FastAPI application
+def run_application() -> None:
+    """Run the FastAPI application.
 
-    :return: the FastAPI application
+    :return: None
     """
     logging.basicConfig(level=logging.INFO)
     try:
@@ -24,4 +27,5 @@ def get_application():
         logging.error("Failed to start Uvicorn server:", exc_info=True)
 
 
-app = get_application()
+if __name__ == "__main__":
+    run_application()

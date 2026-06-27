@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 from app.controllers import UserController
-from app.schemas.extras import Token
+from app.schemas.extras import RefreshTokenRequest, Token
 from core.factory import Factory
 from core.fastapi.dependencies import AuthenticationRequired
 
@@ -24,8 +24,10 @@ async def login(
 @tokens_router.put("", dependencies=[Depends(AuthenticationRequired)])
 async def refresh_token(
     request: Request,
-    refresh_token: str,
+    token_request: RefreshTokenRequest,
     user_controller: UserController = Depends(Factory().get_user_controller),
 ) -> Token | None:
     access_token = request.headers.get("Authorization").split(" ")[1]
-    return await user_controller.refresh_token(access_token, refresh_token)
+    return await user_controller.refresh_token(
+        access_token, token_request.refresh_token
+    )

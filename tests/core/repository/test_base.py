@@ -27,6 +27,14 @@ class TestBaseRepository:
         users = await repository.get_all()
         assert len(users) == 2
 
+    @pytest.mark.asyncio
+    async def test_update_keeps_falsy_values(self, repository: BaseRepository):
+        user = await repository.create(self._user_data_generator())
+
+        updated_user = await repository.update(user, {"username": ""})
+
+        assert updated_user.username == ""
+
     def _user_data_generator(self):
         return {
             "username": fake.user_name(),

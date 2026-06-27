@@ -1,78 +1,153 @@
 # secure-waypoint
-A FastAPI backend for secure authentication and user management. Features CRUD operations, pagination, filtering, and search, all within a Docker setup for easy deployment. Reliably built and tested for high coverage.
 
+A FastAPI backend for secure authentication and user management. It includes
+role-based access control, user CRUD endpoints, token refresh, Docker-based
+local services, Alembic migration scaffolding, and a small developer workflow
+for linting, testing, and CI.
 
 ## Features
 
-Secure-Waypoint is built with a focus on security and efficiency, offering the following features:
+- Authentication and authorization with Basic login, Bearer access tokens, and
+  refresh tokens.
+- Role-based access control for user, moderator, and admin actions.
+- User CRUD endpoints, `/me`, username search, pagination, and creation-year
+  filtering.
+- OpenAPI documentation at `/docs` and ReDoc at `/redoc`.
+- Docker Compose services for the API, PostgreSQL, and Nginx.
+- Separate local PostgreSQL test service in `docker-compose.test.yml`.
+- Alembic scaffolding for async SQLAlchemy migrations.
+- GitHub Actions CI for Ruff, Black formatting through pre-commit, and pytest
+  coverage against PostgreSQL.
 
-  - Authentication and Authorization: Implements robust mechanisms for user authentication and role-based access control. Supported operations include:
-    - User login with basic authentication and token refresh capabilities.
-    - Role-based access control with predefined roles.
+## Requirements
 
-  - User Management: Provides comprehensive CRUD operations for managing user accounts, as well as additional capabilities:
-    - Create, update, and delete user profiles.
-    - Fetch single user details or list all users with support for pagination and filtering by creation year.
-    - Search users by username.
+- Docker or Docker Compose for local database services.
+- Poetry for Python dependency management.
+- Python 3.12 is used by the Docker image and CI.
 
-  - API Documentation: Automatically generated OpenAPI documentation, making it easy to understand and interact with the API.
+## Setup
 
-  - Secure Deployment: Dockerized environment with separate services for the application, PostgreSQL database, and Nginx web server, ensuring easy and secure deployments.
+Copy the example environment file and adjust values as needed:
 
-  - Testing: Comprehensive test suite with high coverage, ensuring the reliability and correctness of the application.
+```bash
+cp .env.example .env
+```
 
-  - Logging: Centralized logging with log rotation and log level configuration for monitoring and debugging.
+Install dependencies:
 
-  - Scalability: Uses best practices for building scalable, maintainable and secure applications.
+```bash
+make install
+```
 
-  - CLI Management: Provides a CLI tool for database management, shell access, and other administrative tasks.
+Start the application stack:
 
-## Prerequisites
+```bash
+docker-compose up -d --build
+```
 
-Before you begin, ensure you have Docker installed on your machine. You will also need Poetry for Python dependency management.
-Setup
+Initialize the database and create the initial admin user:
 
-1. Environment File:
-    - Copy the .env.example file to create a .env file:
-        ```bash
-        cp .env.example .env
-        ```
-    - Adjust the .env file parameters according to your environment needs.
+```bash
+docker-compose exec api python -m cli db init
+```
 
-2. Building and Running the Application:
+The API is available at `http://localhost:8000`. Nginx proxies it at
+`http://localhost`.
 
-    - To build and start the services in detached mode:
-        ```bash
-        docker-compose up -d --build
-        ```
+The ASGI application target is `core.server:app`. `main.py` is kept as a
+direct-run convenience wrapper and does not start Uvicorn on import.
 
-    - Initialize the database and create the initial admin user:
-        ```bash
-        docker-compose exec api python -m cli db init
-        ```
+## Developer Commands
 
-    - The application will be accessible at `http://localhost:8000` and `http://localhost`.
+The Makefile provides the common local workflow:
 
-## Testing
+```bash
+make install       # poetry install
+make format        # ruff autofix and Black through pre-commit
+make lint          # ruff check
+make test          # pytest
+make coverage      # coverage run -m pytest, then coverage report
+make pre-commit    # pre-commit run --all-files
+make ci            # local CI subset: lint and coverage
+```
 
-To run the automated tests:
+Pass focused pytest arguments with `PYTEST_ARGS`:
 
-1. Install Dependencies:
-    - Install the required packages using Poetry:
-        ```bash
-        poetry install
-        ```
+```bash
+make test PYTEST_ARGS='tests/api/v1/test_tokens.py'
+```
 
-2.  Configure Test Environment:
-    - Ensure the `POSTGRES_HOST` in the `.env` file is set to `localhost` to allow connectivity from your local machine for testing.
+`make typecheck` runs `mypy .`, but it is not part of the default CI target yet
+because the current strict mypy baseline is not clean.
 
-3. Run Tests:
+## Test Database
 
-    - Execute the tests using pytest:
-        ```bash
-        poetry run pytest
-        ```
+Tests expect a PostgreSQL database whose name is the configured `POSTGRES_DB`
+with `-test` appended. The test Compose file creates that database with local
+defaults:
 
-## Deployment
+```bash
+make db-test-up
+make test
+make db-test-down
+```
 
-The application is ready for deployment using Docker, facilitating easy scaling and management within containerized environments.
+By default this uses:
+
+- `POSTGRES_USER=postgres`
+- `POSTGRES_PASSWORD=postgres`
+- `POSTGRES_HOST=localhost`
+- `POSTGRES_PORT=5432`
+- `POSTGRES_DB=secure_waypoint`
+
+Override those variables in the shell or when invoking `make` if needed.
+
+## Migrations
+
+Alembic is configured in `alembic.ini` and `alembic/env.py`. The migration
+environment imports `app.models.Base.metadata` and reads the async PostgreSQL
+URL from `core.config.config.SQLALCHEMY_DATABASE_URI`.
+
+Create a migration:
+
+```bash
+poetry run alembic revision --autogenerate -m "describe change"
+```
+
+Apply migrations:
+
+```bash
+poetry run alembic upgrade head
+```
+
+## API Notes
+
+Login uses Basic authentication:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/tokens \
+  -H 'Authorization: Basic <base64 username:password>'
+```
+
+Refresh tokens are submitted in the request body while the current access token
+is passed as the Bearer token:
+
+```bash
+curl -X PUT http://localhost:8000/api/v1/tokens \
+  -H 'Authorization: Bearer <access-token>' \
+  -H 'Content-Type: application/json' \
+  -d '{"refresh_token":"<refresh-token>"}'
+```
+
+Refresh tokens are type-checked and bound to the same user as the access token.
+
+## CI
+
+GitHub Actions is configured at `.github/workflows/ci.yml`. It runs on pushes
+and pull requests, starts a PostgreSQL service, installs Poetry dependencies,
+then runs:
+
+- `poetry run ruff check .`
+- `poetry run pre-commit run black --all-files`
+- `poetry run coverage run -m pytest`
+- `poetry run coverage report`
