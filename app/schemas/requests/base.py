@@ -1,4 +1,5 @@
 import datetime
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
@@ -20,3 +21,9 @@ class Base(BaseModel):
         json_encoders={datetime.datetime: convert_datetime_to_realworld},
         alias_generator=convert_field_to_camel_case,
     )
+
+    def to_create_attributes(self) -> dict[str, Any]:
+        return self.model_dump()
+
+    def to_update_attributes(self) -> dict[str, Any]:
+        return self.model_dump(exclude_unset=True)
