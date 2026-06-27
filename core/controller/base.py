@@ -1,7 +1,8 @@
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import Any, Generic, TypeVar
 
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.sql.elements import ColumnElement
 
 from core.database import Base
 from core.exceptions import BadRequestException, NotFoundException
@@ -13,11 +14,11 @@ ModelType = TypeVar("ModelType", bound=Base)
 class BaseController(Generic[ModelType]):
     """Base class for data controllers."""
 
-    def __init__(self, model: type[ModelType], repository: BaseRepository):
+    def __init__(self, model: type[ModelType], repository: BaseRepository[ModelType]):
         self.model_class = model
         self.repository = repository
 
-    async def create(self, attributes: dict[str, Any]) -> ModelType:
+    async def create(self, attributes: Mapping[str, Any]) -> ModelType:
         """Creates a new Object in the DB.
 
         :param attributes: The attributes to create the object with.
@@ -41,7 +42,10 @@ class BaseController(Generic[ModelType]):
         return await self.repository.get_all(skip, limit)
 
     async def get_filtered(
-        self, filters: dict[str, Any] | None = None, skip: int = 0, limit: int = 100
+        self,
+        filters: Sequence[ColumnElement[bool]] | None = None,
+        skip: int = 0,
+        limit: int = 100,
     ) -> Sequence[ModelType]:
         """Retrieves a filtered list of model instances based on provided filters.
 
@@ -61,15 +65,19 @@ class BaseController(Generic[ModelType]):
         :return: The model instance.
         """
 
-        db_obj = await self.repository.get_by(field="id", value=id_, unique=True)
+        db_obj = await self.repository.get_by(
+            column=self.model_class.id,
+            value=id_,
+            unique=True,
+        )
         if not db_obj:
             raise NotFoundException(
-                f"{self.model_class.__tablename__.title()} with id: {id} does not exist"
+                f"{self.model_class.__tablename__.title()} with id: {id_} does not exist"
             )
 
         return db_obj
 
-    async def update(self, id_: int, attributes: dict[str, Any]) -> ModelType:
+    async def update(self, id_: int, attributes: Mapping[str, Any]) -> ModelType:
         """Updates the Object in the DB.
 
         :param id_: The id of the object to update.

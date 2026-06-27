@@ -1,9 +1,9 @@
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import Any, Generic, TypeVar
 
-from sqlalchemy import Select
+from sqlalchemy import Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql.expression import select
+from sqlalchemy.sql.elements import ColumnElement
 
 from core.database import Base
 
@@ -17,7 +17,7 @@ class BaseRepository(Generic[ModelType]):
         self.session: AsyncSession = db_session
         self.model_class: type[ModelType] = model
 
-    async def create(self, attributes: dict[str, Any] | None = None) -> ModelType:
+    async def create(self, attributes: Mapping[str, Any] | None = None) -> ModelType:
         """Creates the model instance.
 
         :param attributes: The attributes to create the model with.
@@ -45,7 +45,10 @@ class BaseRepository(Generic[ModelType]):
         return await self._all_unique(query)
 
     async def get_filtered(
-        self, filters: dict[str, Any] | None = None, skip: int = 0, limit: int = 100
+        self,
+        filters: Sequence[ColumnElement[bool]] | None = None,
+        skip: int = 0,
+        limit: int = 100,
     ) -> Sequence[ModelType]:
         """Retrieves a filtered list of model instances based on provided filters.
 
@@ -57,20 +60,14 @@ class BaseRepository(Generic[ModelType]):
         """
         query = select(self.model_class)
         if filters:
-            for field, value in filters.items():
-                if isinstance(value, tuple | list) and len(value) == 2:
-                    query = query.where(
-                        getattr(self.model_class, field).between(*value)
-                    )
-                else:
-                    query = query.where(getattr(self.model_class, field) == value)
+            query = query.where(*filters)
 
         query = query.offset(skip).limit(limit)
         return await self._all_unique(query)
 
     async def get_by(
         self,
-        field: str,
+        column: Any,
         value: Any,
         unique: bool = False,
     ) -> ModelType | Sequence[ModelType] | None:
@@ -82,13 +79,15 @@ class BaseRepository(Generic[ModelType]):
         :return: The model instance.
         """
         query = select(self.model_class)
-        query = await self._get_by(query, field, value)
+        query = self._get_by(query, column, value)
         if unique:
             return await self._one(query)
 
         return await self._all(query)
 
-    async def update(self, model: ModelType, attributes: dict[str, Any]) -> ModelType:
+    async def update(
+        self, model: ModelType, attributes: Mapping[str, Any]
+    ) -> ModelType:
         """Updates the model instance.
 
         :param model: The model to update.
@@ -153,13 +152,13 @@ class BaseRepository(Generic[ModelType]):
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
 
-    async def _get_by(self, query: Select, field: str, value: Any) -> Select:
+    def _get_by(self, query: Select, column: Any, value: Any) -> Select:
         """Returns the query filtered by the given column.
 
         :param query: The query to filter.
-        :param field: The column to filter by.
+        :param column: The column to filter by.
         :param value: The value to filter by.
 
         :return: The filtered query.
         """
-        return query.where(getattr(self.model_class, field) == value)
+        return query.where(column == value)

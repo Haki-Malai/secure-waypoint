@@ -9,7 +9,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Role, User
-from core.factory.factory import get_session
+from core.database import get_session
 from core.server import create_app
 
 

@@ -1,13 +1,13 @@
 from collections.abc import Sequence
 
-from sqlalchemy.future import select
+from sqlalchemy import select
 
 from app.models.user import User
 from core.repository import BaseRepository
 
 
 class UserRepository(BaseRepository[User]):
-    async def get_by_username(self, username: str) -> User:
+    async def get_by_username(self, username: str) -> User | None:
         """Get a user by username.
 
         :param username: The username of the user.

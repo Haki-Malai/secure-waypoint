@@ -18,6 +18,13 @@ app = typer.Typer()
 
 @contextlib.asynccontextmanager
 async def async_get_session():
+    """Provide a scoped async database session to the interactive shell.
+
+    The shell creates its own session context, then uses this helper to expose a
+    usable SQLAlchemy session in the embedded IPython namespace.
+
+    :return: An async context manager yielding the database session.
+    """
     async for session in get_session():
         yield session
 

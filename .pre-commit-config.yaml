@@ -32,3 +32,11 @@ repos:
       - id: ruff
         args:
           - --fix
+
+  - repo: local
+    hooks:
+      - id: ruff-docstrings
+        name: ruff-docstrings
+        entry: poetry run ruff check core app/controllers app/repositories cli main.py --select D102,D103,D419
+        language: system
+        pass_filenames: false

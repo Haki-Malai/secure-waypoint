@@ -12,25 +12,16 @@ dynamic = ["dependencies"]
 [tool.poetry.dependencies]
 python = ">=3.11,<4.0"
 fastapi = { version = ">=0.138.1,<1.0.0", extras = ["standard"] }
-python-multipart = "^0.0.32"
-email-validator = "^2.3.0"
-tenacity = "^9.1.4"
 pydantic = "^2.13.4"
-emails = "^1.1.2"
-jinja2 = "^3.1.6"
 alembic = "^1.18.5"
 httpx = "^0.28.1"
-psycopg = { version = "^3.3.4", extras = ["binary"] }
 bcrypt = "^5.0.0"
 pydantic-settings = "^2.14.2"
-pyjwt = "^2.13.0"
 sqlalchemy = "^2.0.51"
-psycopg2-binary = "^2.9.12"
 nest-asyncio = "^1.6.0"
 asyncpg = "^0.31.0"
 ipython = "^9.15.0"
 python-jose = "^3.5.0"
-greenlet = "^3.5.3"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^9.1.1"

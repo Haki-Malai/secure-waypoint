@@ -1,4 +1,4 @@
-from fastapi import Depends, FastAPI, Request
+from fastapi import FastAPI, Request
 from fastapi.middleware import Middleware
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
@@ -7,10 +7,8 @@ from starlette.middleware.authentication import AuthenticationMiddleware
 from api import router
 from core.config import config
 from core.exceptions import CustomException
-from core.fastapi.dependencies import Logging
 from core.fastapi.middlewares import (
     AuthenticationBackend,
-    ResponseLoggerMiddleware,
     SQLAlchemyMiddleware,
 )
 
@@ -53,7 +51,6 @@ def make_middleware() -> list[Middleware]:
             allow_headers=["*"],
         ),
         Middleware(SQLAlchemyMiddleware),
-        Middleware(ResponseLoggerMiddleware),
         Middleware(AuthenticationMiddleware, backend=AuthenticationBackend()),
     ]
     return middleware
@@ -70,7 +67,6 @@ def create_app() -> FastAPI:
         version=config.RELEASE_VERSION,
         docs_url="/docs",
         redoc_url="/redoc",
-        dependencies=[Depends(Logging)],
         middleware=make_middleware(),
     )
     # Initialize the routers

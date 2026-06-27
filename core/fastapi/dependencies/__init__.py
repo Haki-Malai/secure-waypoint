@@ -1,9 +1,18 @@
-from core.fastapi.dependencies.authentication import AuthenticationRequired
-from core.fastapi.dependencies.current_user import get_current_user
-from core.fastapi.dependencies.logging import Logging
+from core.fastapi.dependencies.authentication import (
+    AuthenticationRequired,
+    AuthenticationRequiredDep,
+    BearerCredentialsDep,
+    require_authentication,
+)
+from core.fastapi.dependencies.controllers import UserControllerDep
+from core.fastapi.dependencies.current_user import CurrentUserDep, get_current_user
 
 __all__ = [
-    "Logging",
-    "get_current_user",
     "AuthenticationRequired",
+    "AuthenticationRequiredDep",
+    "BearerCredentialsDep",
+    "CurrentUserDep",
+    "UserControllerDep",
+    "get_current_user",
+    "require_authentication",
 ]

@@ -1,4 +1,3 @@
-from jose import ExpiredSignatureError, JWTError, jwt
 from starlette.authentication import (
     AuthCredentials,
 )
@@ -7,8 +6,9 @@ from starlette.authentication import (
 )
 from starlette.requests import HTTPConnection
 
+from app.helpers import TokenType, token_helper
 from app.schemas.extras import CurrentUser
-from core.config import config
+from core.exceptions import UnauthorizedException
 
 
 class AuthenticationBackend(BaseAuthenticationBackend):
@@ -27,11 +27,12 @@ class AuthenticationBackend(BaseAuthenticationBackend):
         if scheme != "bearer" or not token:
             return None
 
-        user_id = self._validate_token(token)
-        if user_id is None:
+        try:
+            payload = token_helper.decode(token, expected_type=TokenType.ACCESS)
+        except UnauthorizedException:
             return None
 
-        current_user = CurrentUser(id=user_id)
+        current_user = CurrentUser(id=payload.user_id)
         return AuthCredentials(["authenticated"]), current_user
 
     def _extract_token(self, authorization: str) -> tuple[str, str | None]:
@@ -46,18 +47,3 @@ class AuthenticationBackend(BaseAuthenticationBackend):
             return scheme.lower(), token
         except ValueError:
             return "", None
-
-    def _validate_token(self, token: str) -> str | None:
-        """Validates the token and returns the user_id if valid.
-
-        :param token: The token to validate.
-
-        :returns: The user_id if the token is valid.
-        """
-        try:
-            payload = jwt.decode(
-                token, config.SECRET_KEY, algorithms=[config.JWT_ALGORITHM]
-            )
-            return payload.get("user_id")
-        except (JWTError, ExpiredSignatureError):
-            return None

@@ -15,14 +15,33 @@ session_context: ContextVar[str] = ContextVar("session_context")
 
 
 def get_session_context() -> str:
+    """Return the current database session context identifier.
+
+    The async scoped session uses this value to isolate sessions across request
+    and command contexts.
+
+    :return: The active session context identifier.
+    """
     return session_context.get()
 
 
 def set_session_context(session_id: str) -> Token:
+    """Set the current database session context identifier.
+
+    :param session_id: The identifier to bind to the current context.
+
+    :return: A token that can be used to restore the previous context value.
+    """
     return session_context.set(session_id)
 
 
 def reset_session_context(context: Token) -> None:
+    """Restore the database session context from a previous token.
+
+    :param context: The token returned by ``set_session_context``.
+
+    :return: None.
+    """
     session_context.reset(context)
 
 

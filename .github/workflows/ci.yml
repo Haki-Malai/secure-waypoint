@@ -51,6 +51,9 @@ jobs:
       - name: Ruff
         run: poetry run ruff check .
 
+      - name: Ruff docstrings
+        run: poetry run ruff check core app/controllers app/repositories cli main.py --select D102,D103,D419
+
       - name: Black
         run: poetry run pre-commit run black --all-files
 

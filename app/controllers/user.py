@@ -1,11 +1,11 @@
 from collections.abc import Sequence
 
+from app.helpers import token_helper
 from app.models import User
 from app.repositories import UserRepository
 from app.schemas.extras import Token
 from core.controller import BaseController
 from core.exceptions import NotFoundException, UnauthorizedException
-from core.security.jwt_handler import jwt_handler
 
 
 class UserController(BaseController[User]):
@@ -32,14 +32,7 @@ class UserController(BaseController[User]):
         """
         user = await self.user_repository.get_by_username(username)
         if user and user.verify_password(password):
-            return Token(
-                access_token=jwt_handler.encode(
-                    {"user_id": user.id, "token_type": "access"}
-                ),
-                refresh_token=jwt_handler.encode(
-                    {"user_id": user.id, "token_type": "refresh"}
-                ),
-            )
+            return token_helper.issue_pair(user.id)
         raise UnauthorizedException("Invalid username or password")
 
     async def refresh_token(
@@ -51,25 +44,9 @@ class UserController(BaseController[User]):
 
         :return: A new token.
         """
-        refresh_token_payload = jwt_handler.decode(refresh_token)
-        access_token_payload = jwt_handler.decode(access_token)
         try:
-            if (
-                refresh_token_payload["token_type"] != "refresh"
-                or access_token_payload["token_type"] != "access"
-                or refresh_token_payload["user_id"] != access_token_payload["user_id"]
-            ):
-                raise UnauthorizedException("Invalid token")
-
-            user_id = access_token_payload["user_id"]
+            user_id = token_helper.validate_refresh(access_token, refresh_token)
             await self.get_by_id(user_id)
-            return Token(
-                access_token=jwt_handler.encode(
-                    {"user_id": user_id, "token_type": "access"}
-                ),
-                refresh_token=jwt_handler.encode(
-                    {"user_id": user_id, "token_type": "refresh"}
-                ),
-            )
+            return token_helper.issue_pair(user_id)
         except (KeyError, NotFoundException):
             raise UnauthorizedException("Invalid token")

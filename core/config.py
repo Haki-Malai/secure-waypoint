@@ -40,6 +40,13 @@ class Config(BaseSettings):
     @computed_field
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:
+        """Build the async SQLAlchemy PostgreSQL database URI.
+
+        The URI is derived from the PostgreSQL environment settings and uses
+        the asyncpg SQLAlchemy driver required by the application session layer.
+
+        :return: The PostgreSQL DSN used by SQLAlchemy async engines.
+        """
         return MultiHostUrl.build(
             scheme="postgresql+asyncpg",
             username=self.POSTGRES_USER,
